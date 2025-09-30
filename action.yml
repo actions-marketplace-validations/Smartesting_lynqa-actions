@@ -1,4 +1,4 @@
-name: Lynqa
+name: Lynqa GitHub Action
 description: Run tests with Lynqa from GitHub Actions workflows
 author: Smartesting
 
