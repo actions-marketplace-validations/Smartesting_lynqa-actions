@@ -1,6 +1,6 @@
 {
-  "name": "@smartesting/testrunner-actions",
-  "description": "GitHub Actions to run tests with Smartesting Test Runner",
+  "name": "@smartesting/lynqa-actions",
+  "description": "GitHub Actions to run tests with Lynqa",
   "version": "0.0.0",
   "author": "Smartesting",
   "type": "module",
@@ -27,7 +27,7 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@smartesting/astris": "^0.0.6"
+    "@smartesting/lynqa-sdk": "^0.0.2"
   },
   "devDependencies": {
     "@eslint/compat": "^1.3.1",

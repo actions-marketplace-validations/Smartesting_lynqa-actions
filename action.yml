@@ -1,5 +1,5 @@
-name: Smartesting Test runner
-description: Run tests with Smartesting Test Runner from GitHub Actions workflows
+name: Lynqa
+description: Run tests with Lynqa from GitHub Actions workflows
 author: Smartesting
 
 branding:
@@ -7,14 +7,14 @@ branding:
   color: green
 
 inputs:
-  test-runner-url:
-    description: URL of test runner API
+  lynqa-api-url:
+    description: URL of Lynqa API
     required: true
-  test-runner-api-key:
-    description: Test runner API key
+  lynqa-api-key:
+    description: Lynqa API key
     required: true
   directory:
-    description: Directory containing TestRunner test files (rec.)
+    description: Directory containing Lynqa test files (rec.)
     required: true
 
 outputs:

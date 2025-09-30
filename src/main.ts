@@ -2,24 +2,24 @@ import * as core from "@actions/core";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import {
-  AstrisClient,
-  IAstrisClient,
   Id,
+  ILynqaClient,
+  LynqaClient,
   RunStatus,
-} from "@smartesting/astris";
+} from "@smartesting/lynqa-sdk";
 
 const TEST_TIMEOUT = 1000 * 60 * 30;
 
 export async function run() {
-  const client: IAstrisClient = new AstrisClient(
-    core.getInput("test-runner-url", { required: true }),
-    core.getInput("test-runner-api-key", { required: true }),
+  const client: ILynqaClient = new LynqaClient(
+    core.getInput("lynqa-api-url", { required: true }),
+    core.getInput("lynqa-api-key", { required: true }),
   );
 
   const directory = core.getInput("directory", { required: true });
   const files = findJsonFiles(directory);
   if (files.length === 0) {
-    core.setFailed(`No *.testrunner.json file found in ${directory}`);
+    core.setFailed(`No *.lynqa.json file found in ${directory}`);
     return;
   }
   core.info(`Found ${files.length} files: ${files.join(", ")}`);
@@ -126,7 +126,7 @@ function findJsonFiles(dir: string): string[] {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       files = files.concat(findJsonFiles(fullPath));
-    } else if (entry.isFile() && entry.name.endsWith(".testrunner.json")) {
+    } else if (entry.isFile() && entry.name.endsWith(".lynqa.json")) {
       files.push(fullPath);
     }
   }
@@ -134,7 +134,7 @@ function findJsonFiles(dir: string): string[] {
 }
 
 async function waitForCompletion(
-  client: IAstrisClient,
+  client: ILynqaClient,
   id: Id,
   label: string,
   shouldStop: () => boolean,

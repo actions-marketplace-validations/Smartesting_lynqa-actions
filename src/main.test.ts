@@ -1,7 +1,7 @@
-import { AstrisClient, RunStatus } from "@smartesting/astris";
 import { run } from "./main";
 import * as fs from "fs";
 import * as core from "@actions/core";
+import { LynqaClient, RunStatus } from "@smartesting/lynqa-sdk";
 import SpyInstance = jest.SpyInstance;
 
 jest.mock("fs", () => {
@@ -14,18 +14,18 @@ jest.mock("fs", () => {
 });
 const mockedFs = fs as jest.Mocked<typeof fs>;
 
-jest.mock("@smartesting/astris", () => {
+jest.mock("@smartesting/lynqa-sdk", () => {
   return {
     RunStatus: {
       RUNNING: "RUNNING",
       SUCCESS: "SUCCESS",
       ERROR: "ERROR",
     },
-    AstrisClient: jest.fn(),
+    LynqaClient: jest.fn(),
   };
 });
 
-const MockedAstrisClient = AstrisClient as jest.Mock;
+const MockedLynqaClient = LynqaClient as jest.Mock;
 
 jest.spyOn(global, "setTimeout").mockImplementation((cb) => {
   cb();
@@ -43,7 +43,7 @@ describe("GitHub Action run()", () => {
   beforeEach(() => {
     mockedFs.readdirSync.mockReturnValue([
       {
-        name: "sample.testrunner.json",
+        name: "sample.lynqa.json",
         isFile: () => true,
         isDirectory: () => false,
       } as unknown as fs.Dirent<Buffer>,
@@ -65,9 +65,9 @@ describe("GitHub Action run()", () => {
     info = jest.spyOn(core, "info").mockImplementation(jest.fn());
     jest.spyOn(core, "getInput").mockImplementation((name: string) => {
       switch (name) {
-        case "test-runner-url":
-          return "http://fake-runner";
-        case "test-runner-api-key":
+        case "lynqa-api-url":
+          return "http://fake-url";
+        case "lynqa-api-key":
           return "FAKE_KEY";
         case "directory":
           return "/tests";
@@ -78,7 +78,7 @@ describe("GitHub Action run()", () => {
   });
 
   it("should succeed when test run finishes with SUCCESS", async () => {
-    MockedAstrisClient.mockImplementation(() => ({
+    MockedLynqaClient.mockImplementation(() => ({
       addTestRun: jest.fn().mockResolvedValue("RUN_ID"),
       getTestRunFullStatus: jest
         .fn()
@@ -99,7 +99,7 @@ describe("GitHub Action run()", () => {
   });
 
   it("should fail when test run finishes with ERROR", async () => {
-    MockedAstrisClient.mockImplementation(() => ({
+    MockedLynqaClient.mockImplementation(() => ({
       addTestRun: jest.fn().mockResolvedValue("FAKE_RUN_ID"),
       getTestRunFullStatus: jest
         .fn()

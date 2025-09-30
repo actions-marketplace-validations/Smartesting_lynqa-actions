@@ -28702,7 +28702,7 @@ class AbstractHttpClientAdapter {
     }
 }
 
-class AstrisClientError extends Error {
+class LynqaClientError extends Error {
     constructor(statusCode, error, msg) {
         const s = Array.isArray(msg) ? msg.join(', ') : msg;
         super(s);
@@ -28730,20 +28730,21 @@ class FetchHttpClientAdapter extends AbstractHttpClientAdapter {
         try {
             json = await response.json();
         }
-        catch {
+        catch (e) {
+            console.error('Failed to fetch json', e);
             const text = await cloned.text();
-            throw new AstrisClientError(response.status, 'InvalidJSON', `Response is not valid JSON: ${text}`);
+            throw new LynqaClientError(response.status, 'InvalidJSON', `Response is not valid JSON: ${text}`);
         }
         if (!response.ok) {
-            throw new AstrisClientError(json.statusCode, json.error, json.message);
+            throw new LynqaClientError(json.statusCode, json.error, json.message);
         }
         return json;
     }
 }
 
-class AstrisClient {
+class LynqaClient {
     constructor(serverUrl, apiKey, adapterFactory = FetchHttpClientAdapter.create) {
-        this.adapter = adapterFactory(serverUrl.replace(/\/+$/, '') + '/api/', apiKey);
+        this.adapter = adapterFactory(serverUrl.replace(/\/+$/, '') + '/', apiKey);
     }
     async addTestRun(body) {
         return this.adapter.request(`testRuns`, { method: 'POST', body });
@@ -28769,15 +28770,18 @@ class AstrisClient {
     async getScreenshot(testRunId, screenshotId) {
         return this.adapter.request(`testRuns/${testRunId}/screenshots/${screenshotId}`);
     }
+    async getTestExecutionCredits() {
+        return this.adapter.request(`account/credits`);
+    }
 }
 
 const TEST_TIMEOUT = 1000 * 60 * 30;
 async function run() {
-    const client = new AstrisClient(coreExports.getInput("test-runner-url", { required: true }), coreExports.getInput("test-runner-api-key", { required: true }));
+    const client = new LynqaClient(coreExports.getInput("lynqa-api-url", { required: true }), coreExports.getInput("lynqa-api-key", { required: true }));
     const directory = coreExports.getInput("directory", { required: true });
     const files = findJsonFiles(directory);
     if (files.length === 0) {
-        coreExports.setFailed(`No *.testrunner.json file found in ${directory}`);
+        coreExports.setFailed(`No *.lynqa.json file found in ${directory}`);
         return;
     }
     coreExports.info(`Found ${files.length} files: ${files.join(", ")}`);
@@ -28865,7 +28869,7 @@ function findJsonFiles(dir) {
         if (entry.isDirectory()) {
             files = files.concat(findJsonFiles(fullPath));
         }
-        else if (entry.isFile() && entry.name.endsWith(".testrunner.json")) {
+        else if (entry.isFile() && entry.name.endsWith(".lynqa.json")) {
             files.push(fullPath);
         }
     }
