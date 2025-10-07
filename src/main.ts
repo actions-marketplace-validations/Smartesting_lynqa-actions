@@ -83,16 +83,23 @@ export async function run() {
             `[${label}] [${new Date().toISOString()}] TestRun created: ${testRunId}`,
           );
 
-          const status = await waitForCompletion(
-            client,
-            testRunId,
-            label,
-            () => shouldStop,
-          );
-          if (status !== RunStatus.SUCCESS) failedTests.push(label);
+          try {
+            const status = await waitForCompletion(
+                client,
+                testRunId,
+                label,
+                () => shouldStop,
+            );
+            if (status !== RunStatus.SUCCESS) failedTests.push(label);
+          }
+          catch (e) {
+            await client.stopTestRuns(testRunId)
+            // noinspection ExceptionCaughtLocallyJS
+            throw e
+          }
         } catch (err) {
           core.error(
-            `[${label}] Error launching test: ${(err as Error).message}`,
+            `[${label}] Error occurred while test execution: ${(err as Error).message}`,
           );
           failedTests.push(label);
         } finally {
@@ -149,7 +156,7 @@ async function waitForCompletion(
       core.info(
         `[${label}] [${new Date().toISOString()}] Status: ${status} (step ${done + 1}/${stepStatuses.length})`,
       );
-      await sleep(5000);
+      await sleep(30000);
       continue;
     }
 
