@@ -28823,21 +28823,33 @@ async function run() {
                 if (shouldStop)
                     break;
                 const test = content.tests[i];
-                const label = `${path__namespace.basename(file)}#${i + 1}:${test.name ?? "unnamed"}`;
+                const label = `${path__namespace.basename(file)}#${i + 1}:${replacePlaceholders(test.name) ?? "unnamed"}`;
                 try {
                     const testRunId = await client.addTestRun({
                         url: content.url,
-                        steps: test.steps,
+                        steps: test.steps.map(({ action, expectedResult }) => {
+                            return {
+                                action: replacePlaceholders(action),
+                                expectedResult: replacePlaceholders(expectedResult),
+                            };
+                        }),
                     });
                     currentRunId = testRunId;
                     currentLabel = label;
                     coreExports.info(`[${label}] [${new Date().toISOString()}] TestRun created: ${testRunId}`);
-                    const status = await waitForCompletion(client, testRunId, label, () => shouldStop);
-                    if (status !== RunStatus.SUCCESS)
-                        failedTests.push(label);
+                    try {
+                        const status = await waitForCompletion(client, testRunId, label, () => shouldStop);
+                        if (status !== RunStatus.SUCCESS)
+                            failedTests.push(label);
+                    }
+                    catch (e) {
+                        await client.stopTestRuns(testRunId);
+                        // noinspection ExceptionCaughtLocallyJS
+                        throw e;
+                    }
                 }
                 catch (err) {
-                    coreExports.error(`[${label}] Error launching test: ${err.message}`);
+                    coreExports.error(`[${label}] Error occurred while test execution: ${err.message}`);
                     failedTests.push(label);
                 }
                 finally {
@@ -28882,7 +28894,7 @@ async function waitForCompletion(client, id, label, shouldStop) {
         if ([RunStatus.RUNNING, RunStatus.WAITING].includes(status)) {
             const done = stepStatuses.filter((s) => s.end !== undefined).length;
             coreExports.info(`[${label}] [${new Date().toISOString()}] Status: ${status} (step ${done + 1}/${stepStatuses.length})`);
-            await sleep(5000);
+            await sleep(30000);
             continue;
         }
         coreExports.info(`[${label}] [${new Date().toISOString()}] Finished with status: ${status}`);
@@ -28897,6 +28909,26 @@ async function waitForCompletion(client, id, label, shouldStop) {
 }
 function sleep(ms) {
     return new Promise((res) => setTimeout(res, ms));
+}
+function replacePlaceholders(str) {
+    if (typeof str !== "string" || !str.length)
+        return str;
+    return str.replace(/\{\{([^{}]+)}}/g, (match, inner) => {
+        const trimmed = inner.trim();
+        const m = /^(env|input)\.([A-Z0-9_]+)$/i.exec(trimmed);
+        if (!m)
+            return match;
+        const [, type, key] = m;
+        if (type.toLowerCase() === "env" && process.env[key] !== undefined) {
+            return process.env[key];
+        }
+        if (type.toLowerCase() === "input") {
+            const val = coreExports.getInput(key);
+            if (val)
+                return val;
+        }
+        return match;
+    });
 }
 
 void run();
