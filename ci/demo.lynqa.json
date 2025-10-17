@@ -2,15 +2,15 @@
   "url": "https://demo.osclasspoint.com/en/",
   "tests": [
     {
-      "name": "Recherche d'un iPhone",
+      "name": "Recherche d'un {{env.SEARCH}}",
       "steps": [
         {
-          "action": "Saisissez \"iPhone\" dans le champ de recherche par mot-clé.",
-          "expectedResult": "Le mot-clé \"iPhone\" est saisi dans le champ de recherche."
+          "action": "Saisissez \"{{env.SEARCH}}\" dans le champ de recherche par mot-clé.",
+          "expectedResult": "Le mot-clé \"{{env.SEARCH}}\" est saisi dans le champ de recherche."
         },
         {
           "action": "Cliquez sur le bouton \"Search\".",
-          "expectedResult": "La page des résultats de la recherche s'affiche, montrant les annonces \"iPhone\"."
+          "expectedResult": "La page des résultats de la recherche s'affiche, montrant les annonces \"{{env.SEARCH}}\"."
         },
         {
           "action": "Changer l'ordre des annonces en \"Higher price first\"",

@@ -17,6 +17,8 @@ jobs:
 
       - name: Run tests
         uses: ./
+        env:
+          SEARCH: iPhone
         with:
           directory: "ci"
           lynqa-api-key: ${{ secrets.LYNQA_API_KEY }}
