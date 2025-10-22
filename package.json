@@ -22,7 +22,8 @@
     "local-action": "npx @github/local-action . src/main.ts .env",
     "package": "npx rollup --config rollup.config.js",
     "package:watch": "npm run package -- --watch",
-    "all": "npm run format:write && npm run lint && npm run package"
+    "all": "npm run format:write && npm run lint && npm run package",
+    "prepare": "husky"
   },
   "license": "MIT",
   "dependencies": {
@@ -50,9 +51,18 @@
     "rollup": "^4.46.2",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "husky": "^9.1.7"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "*"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,md,yml,json,mjs}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix"
+    ]
   }
 }

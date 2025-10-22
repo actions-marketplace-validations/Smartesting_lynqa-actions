@@ -20,6 +20,6 @@ jobs:
         env:
           SEARCH: iPhone
         with:
-          directory: "ci"
+          directory: 'ci'
           lynqa-api-key: ${{ secrets.LYNQA_API_KEY }}
-          lynqa-api-url: "https://api.lynqa.smartesting.com"
+          lynqa-api-url: 'https://api.lynqa.smartesting.com'

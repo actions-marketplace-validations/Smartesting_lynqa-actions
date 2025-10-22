@@ -1,183 +1,175 @@
-import { run } from "./main";
-import * as fs from "fs";
-import * as core from "@actions/core";
-import { LynqaClient, RunStatus } from "@smartesting/lynqa-sdk";
-import SpyInstance = jest.SpyInstance;
+import { run } from './main'
+import * as fs from 'fs'
+import * as core from '@actions/core'
+import { LynqaClient, RunStatus } from '@smartesting/lynqa-sdk'
+import SpyInstance = jest.SpyInstance
 
-jest.mock("fs", () => {
-  const actualFs = jest.requireActual("fs") as typeof fs;
+jest.mock('fs', () => {
+  const actualFs = jest.requireActual('fs') as typeof fs
   return {
     ...actualFs,
     readdirSync: jest.fn(),
-    readFileSync: jest.fn(),
-  };
-});
-const mockedFs = fs as jest.Mocked<typeof fs>;
+    readFileSync: jest.fn()
+  }
+})
+const mockedFs = fs as jest.Mocked<typeof fs>
 
-jest.mock("@smartesting/lynqa-sdk", () => {
+jest.mock('@smartesting/lynqa-sdk', () => {
   return {
     RunStatus: {
-      RUNNING: "RUNNING",
-      SUCCESS: "SUCCESS",
-      ERROR: "ERROR",
+      RUNNING: 'RUNNING',
+      SUCCESS: 'SUCCESS',
+      ERROR: 'ERROR'
     },
-    LynqaClient: jest.fn(),
-  };
-});
+    LynqaClient: jest.fn()
+  }
+})
 
-const MockedLynqaClient = LynqaClient as jest.Mock;
+const MockedLynqaClient = LynqaClient as jest.Mock
 
-jest.spyOn(global, "setTimeout").mockImplementation((cb) => {
-  cb();
-  return 0 as any;
-});
+jest.spyOn(global, 'setTimeout').mockImplementation((cb) => {
+  cb()
+  return 0 as any
+})
 
-describe("GitHub Action run()", () => {
-  let setFailed: SpyInstance;
-  let info: SpyInstance;
+describe('GitHub Action run()', () => {
+  let setFailed: SpyInstance
+  let info: SpyInstance
 
   afterEach(() => {
-    jest.resetAllMocks();
-  });
+    jest.resetAllMocks()
+  })
 
   beforeEach(() => {
     mockedFs.readdirSync.mockReturnValue([
       {
-        name: "sample.lynqa.json",
+        name: 'sample.lynqa.json',
         isFile: () => true,
-        isDirectory: () => false,
-      } as unknown as fs.Dirent<Buffer>,
-    ]);
+        isDirectory: () => false
+      } as unknown as fs.Dirent<Buffer>
+    ])
 
     mockedFs.readFileSync.mockReturnValue(
       JSON.stringify({
-        url: "http://demo",
+        url: 'http://demo',
         tests: [
           {
-            name: "My first test",
-            steps: [{ action: "do something", expectedResult: "works" }],
-          },
-        ],
-      }),
-    );
+            name: 'My first test',
+            steps: [{ action: 'do something', expectedResult: 'works' }]
+          }
+        ]
+      })
+    )
 
-    setFailed = jest.spyOn(core, "setFailed").mockImplementation(jest.fn());
-    info = jest.spyOn(core, "info").mockImplementation(jest.fn());
-    jest.spyOn(core, "getInput").mockImplementation((name: string) => {
+    setFailed = jest.spyOn(core, 'setFailed').mockImplementation(jest.fn())
+    info = jest.spyOn(core, 'info').mockImplementation(jest.fn())
+    jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
       switch (name) {
-        case "lynqa-api-url":
-          return "http://fake-url";
-        case "lynqa-api-key":
-          return "FAKE_KEY";
-        case "directory":
-          return "/tests";
+        case 'lynqa-api-url':
+          return 'http://fake-url'
+        case 'lynqa-api-key':
+          return 'FAKE_KEY'
+        case 'directory':
+          return '/tests'
         default:
-          return "";
+          return ''
       }
-    });
-  });
+    })
+  })
 
-  it("should succeed when test run finishes with SUCCESS", async () => {
+  it('should succeed when test run finishes with SUCCESS', async () => {
     MockedLynqaClient.mockImplementation(() => ({
-      addTestRun: jest.fn().mockResolvedValue("RUN_ID"),
+      addTestRun: jest.fn().mockResolvedValue('RUN_ID'),
       getTestRunFullStatus: jest
         .fn()
         .mockResolvedValueOnce({
           status: RunStatus.RUNNING,
-          stepStatuses: [],
+          stepStatuses: []
         })
         .mockResolvedValueOnce({
           status: RunStatus.SUCCESS,
-          stepStatuses: [],
-        }),
-    }));
+          stepStatuses: []
+        })
+    }))
 
-    await run();
+    await run()
 
-    expect(setFailed).not.toHaveBeenCalled();
-    expect(info).toHaveBeenCalledWith("✅ All tests succeeded");
-  });
+    expect(setFailed).not.toHaveBeenCalled()
+    expect(info).toHaveBeenCalledWith('✅ All tests succeeded')
+  })
 
-  it("should fail when test run finishes with ERROR", async () => {
+  it('should fail when test run finishes with ERROR', async () => {
     MockedLynqaClient.mockImplementation(() => ({
-      addTestRun: jest.fn().mockResolvedValue("FAKE_RUN_ID"),
-      getTestRunFullStatus: jest
-        .fn()
-        .mockResolvedValue({ status: RunStatus.ERROR, stepStatuses: [] }),
-    }));
+      addTestRun: jest.fn().mockResolvedValue('FAKE_RUN_ID'),
+      getTestRunFullStatus: jest.fn().mockResolvedValue({ status: RunStatus.ERROR, stepStatuses: [] })
+    }))
 
-    await run();
+    await run()
 
-    expect(setFailed).toHaveBeenCalledWith(
-      expect.stringContaining("❌ 1 test(s) failed"),
-    );
-  });
+    expect(setFailed).toHaveBeenCalledWith(expect.stringContaining('❌ 1 test(s) failed'))
+  })
 
-  describe("Parametrization", () => {
+  describe('Parametrization', () => {
     beforeEach(() => {
-      process.env.SEARCH = "bicycle";
-    });
+      process.env.SEARCH = 'bicycle'
+    })
 
     afterEach(() => {
-      delete process.env.SEARCH;
-    });
+      delete process.env.SEARCH
+    })
 
-    it("should replace env and input placeholders in steps", async () => {
+    it('should replace env and input placeholders in steps', async () => {
       mockedFs.readFileSync.mockReturnValue(
         JSON.stringify({
-          url: "http://demo",
+          url: 'http://demo',
           tests: [
             {
               name: "Recherche d'un {{  env.SEARCH }}",
               steps: [
                 {
-                  action:
-                    "Tapez {{env.SEARCH}} dans le champ et cliquer sur {{ env.UNKNOWN }}",
-                  expectedResult: "{{input.RESULT}}",
-                },
-              ],
-            },
-          ],
-        }),
-      );
+                  action: 'Tapez {{env.SEARCH}} dans le champ et cliquer sur {{ env.UNKNOWN }}',
+                  expectedResult: '{{input.RESULT}}'
+                }
+              ]
+            }
+          ]
+        })
+      )
 
-      jest.spyOn(core, "getInput").mockImplementation((name: string) => {
+      jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
         switch (name) {
-          case "lynqa-api-url":
-            return "http://fake-url";
-          case "lynqa-api-key":
-            return "FAKE_KEY";
-          case "directory":
-            return "/tests";
-          case "RESULT":
-            return "succès";
+          case 'lynqa-api-url':
+            return 'http://fake-url'
+          case 'lynqa-api-key':
+            return 'FAKE_KEY'
+          case 'directory':
+            return '/tests'
+          case 'RESULT':
+            return 'succès'
           default:
-            return "";
+            return ''
         }
-      });
+      })
 
-      const addTestRunMock = jest.fn().mockResolvedValue("RUN_ID");
-      const getTestRunFullStatusMock = jest
-        .fn()
-        .mockResolvedValue({ status: RunStatus.SUCCESS, stepStatuses: [] });
+      const addTestRunMock = jest.fn().mockResolvedValue('RUN_ID')
+      const getTestRunFullStatusMock = jest.fn().mockResolvedValue({ status: RunStatus.SUCCESS, stepStatuses: [] })
 
       MockedLynqaClient.mockImplementation(() => ({
         addTestRun: addTestRunMock,
-        getTestRunFullStatus: getTestRunFullStatusMock,
-      }));
+        getTestRunFullStatus: getTestRunFullStatusMock
+      }))
 
-      await run();
+      await run()
 
       expect(addTestRunMock).toHaveBeenCalledWith({
-        url: "http://demo",
+        url: 'http://demo',
         steps: [
           {
-            action:
-              "Tapez bicycle dans le champ et cliquer sur {{ env.UNKNOWN }}",
-            expectedResult: "succès",
-          },
-        ],
-      });
-    });
-  });
-});
+            action: 'Tapez bicycle dans le champ et cliquer sur {{ env.UNKNOWN }}',
+            expectedResult: 'succès'
+          }
+        ]
+      })
+    })
+  })
+})
