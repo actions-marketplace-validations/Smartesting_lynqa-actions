@@ -46,7 +46,7 @@ describe('GitHub Action run()', () => {
         name: 'sample.lynqa.json',
         isFile: () => true,
         isDirectory: () => false
-      } as unknown as fs.Dirent<Buffer>
+      } as unknown as fs.Dirent
     ])
 
     mockedFs.readFileSync.mockReturnValue(
