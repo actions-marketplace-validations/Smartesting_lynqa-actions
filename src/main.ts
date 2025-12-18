@@ -69,7 +69,8 @@ export async function run() {
                 action: replacePlaceholders(action),
                 expectedResult: replacePlaceholders(expectedResult)
               }
-            })
+            }),
+            context: content.context
           })
 
           currentRunId = testRunId
