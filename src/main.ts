@@ -70,7 +70,7 @@ export async function run() {
                 expectedResult: replacePlaceholders(expectedResult)
               }
             }),
-            context: content.context
+            context: test.context
           })
 
           currentRunId = testRunId
