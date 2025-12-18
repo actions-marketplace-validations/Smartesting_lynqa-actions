@@ -61,8 +61,8 @@ export async function run() {
         const test: Test & { name: string } = content.tests[i]
         const label = `${path.basename(file)}#${i + 1}:${replacePlaceholders(test.name) ?? 'unnamed'}`
 
-        console.log(`ARC - content: ${JSON.stringify(content)}`)
-        console.log(`ARC - test: ${JSON.stringify(test)}`)
+        core.info(`ARC - content: ${JSON.stringify(content)}`)
+        core.info(`ARC - test: ${JSON.stringify(test)}`)
         try {
           const testRunId = await client.addTestRun({
             url: content.url,
