@@ -19,6 +19,7 @@ jobs:
         uses: ./
         env:
           SEARCH: iPhone
+          EMAIL: someone@example.com
         with:
           directory: 'ci'
           lynqa-api-key: ${{ secrets.LYNQA_API_KEY }}

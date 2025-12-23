@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { Id, ILynqaClient, LynqaClient, RunStatus, Test } from '@smartesting/lynqa-sdk'
+import { Id, ILynqaClient, LynqaClient, RunStatus, Test, TestRunContext } from '@smartesting/lynqa-sdk'
 
 const TEST_TIMEOUT = 1000 * 60 * 30
 
@@ -61,8 +61,6 @@ export async function run() {
         const test: Test & { name: string } = content.tests[i]
         const label = `${path.basename(file)}#${i + 1}:${replacePlaceholders(test.name) ?? 'unnamed'}`
 
-        core.info(`ARC - content: ${JSON.stringify(content)}`)
-        core.info(`ARC - test: ${JSON.stringify(test)}`)
         try {
           const testRunId = await client.addTestRun({
             url: content.url,
@@ -72,7 +70,7 @@ export async function run() {
                 expectedResult: replacePlaceholders(expectedResult)
               }
             }),
-            context: test.context
+            context: replacePlaceholdersInContext(test.context)
           })
 
           currentRunId = testRunId
@@ -181,4 +179,13 @@ function replacePlaceholders<S extends string | undefined>(str: S): S {
     }
     return match
   }) as S
+}
+
+function replacePlaceholdersInContext(context: TestRunContext | undefined) {
+  if (!context) return context
+
+  return {
+    ...context,
+    secrets: context.secrets?.map((s) => ({ ...s, value: replacePlaceholders(s.value) }))
+  }
 }

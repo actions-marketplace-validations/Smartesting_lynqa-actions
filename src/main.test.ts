@@ -130,7 +130,15 @@ describe('GitHub Action run()', () => {
                   action: 'Tapez {{env.SEARCH}} dans le champ et cliquer sur {{ env.UNKNOWN }}',
                   expectedResult: '{{input.RESULT}}'
                 }
-              ]
+              ],
+              context: {
+                secrets: [
+                  {
+                    name: 'Exemple de recherche',
+                    value: '{{env.SEARCH}}'
+                  }
+                ]
+              }
             }
           ]
         })
@@ -168,7 +176,15 @@ describe('GitHub Action run()', () => {
             action: 'Tapez bicycle dans le champ et cliquer sur {{ env.UNKNOWN }}',
             expectedResult: 'succès'
           }
-        ]
+        ],
+        context: {
+          secrets: [
+            {
+              name: 'Exemple de recherche',
+              value: 'bicycle'
+            }
+          ]
+        }
       })
     })
   })

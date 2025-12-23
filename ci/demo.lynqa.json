@@ -13,10 +13,26 @@
           "expectedResult": "La page des résultats de la recherche s'affiche, montrant les annonces \"{{env.SEARCH}}\"."
         },
         {
-          "action": "Changer l'ordre des annonces en \"Higher price first\"",
-          "expectedResult": "Les annonces sont affichées par ordre de prix décroissant"
+          "action": "Changer l'ordre des annonces en \"Higher price first\".",
+          "expectedResult": "Les annonces sont affichées par ordre de prix décroissant."
+        },
+        {
+          "action": "Cliquer sur le bouton \"Login\".",
+          "expectedResult": "Une page de connexion s'affiche."
+        },
+        {
+          "action": "Renseigner l'email donné et un mot de passe aléatoire puis valider le formulaire.",
+          "expectedResult": "Une erreur de connexion s'affiche."
         }
-      ]
+      ],
+      "context": {
+        "secrets": [
+          {
+            "name": "email",
+            "value": "{{env.EMAIL}}"
+          }
+        ]
+      }
     }
   ]
 }
