@@ -32,6 +32,11 @@ jest.spyOn(global, 'setTimeout').mockImplementation((cb) => {
   return 0 as any
 })
 
+// @ts-ignore
+jest.spyOn(process, 'exit').mockImplementation((code?: number) => {
+  console.log(`process.exit called with code ${code} and ignored for testing purposes`)
+})
+
 describe('GitHub Action run()', () => {
   let setFailed: SpyInstance
   let info: SpyInstance
